@@ -1,4 +1,10 @@
 package com.zerobase.convpay.service;
 
-public class Money {
+public class MoneyAdapter {
+    public void use(){
+
+    }
+    public void useCancel(){
+
+    }
 }
