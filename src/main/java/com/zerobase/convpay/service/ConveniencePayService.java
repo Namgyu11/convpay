@@ -4,7 +4,7 @@ import com.zerobase.convpay.dto.PayRequest;
 import com.zerobase.convpay.dto.PayResponse;
 import com.zerobase.convpay.dto.PayResult;
 
-public class ConveniencePayService {
+public class ConveniencePayService { // 편의점 결제 서비스
     // payRequest 를 받아서 payResponse 던진다.
 
     /**
