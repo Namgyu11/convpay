@@ -1,26 +1,56 @@
 package com.zerobase.convpay.service;
 
-import com.zerobase.convpay.dto.PayRequest;
-import com.zerobase.convpay.dto.PayResponse;
-import com.zerobase.convpay.dto.PayResult;
+import com.zerobase.convpay.dto.*;
+import com.zerobase.convpay.type.*;
 
 public class ConveniencePayService { // 편의점 결제 서비스
     // payRequest 를 받아서 payResponse 던진다.
+    private final MoneyAdapter moneyAdapter = new MoneyAdapter();
+    private final CardAdapter cardAdapter = new CardAdapter();
 
     /**
      * 결제
+     *
      * @param payRequest
      * @return
      */
-    public PayResponse pay(PayRequest payRequest){
+    public PayResponse pay(PayRequest payRequest) {
+        CardUseResult cardUseResult = null;
+        MoneyUseResult moneyUseResult = null;
+        if (payRequest.getPayMethodType() == PayMethodType.CARD) {
+            cardAdapter.authorization();
+            cardAdapter.approval();
+            cardUseResult = cardAdapter.capture(payRequest.getPayAmount());
+        } else {
 
-        return new PayResponse(PayResult.SUCCESS, 100);
+            moneyUseResult = moneyAdapter.use(payRequest.getPayAmount());
+        }
+
+
+        // fail fast
+        // 단 하나의 성공 케이스를 마지막에 처리 Only one
+        if (cardUseResult == CardUseResult.USE_FAIL || moneyUseResult == MoneyUseResult.USE_FAIL) {
+            return new PayResponse(PayResult.FAIL, 0);
+
+        }
+        // SUCCESS CASE
+        return new PayResponse(PayResult.SUCCESS, payRequest.getPayAmount());
+
+
     }
 
     /**
-     * 결제 취소
+     * @param payCancelRequest
+     * @return
      */
-    public void payCancel(){
+    public PayCancelResponse payCancel(PayCancelRequest payCancelRequest) {
+        MoneyUseCancelResult moneyUseCancelResult
+                = moneyAdapter.useCancel(payCancelRequest.getPayCancelAmount());
 
+        if (moneyUseCancelResult == MoneyUseCancelResult.MONEY_USE_CANCEL_FAIL) {
+            return new PayCancelResponse(PayCancelResult.PAY_CANCEL_FAIL, 0);
+        }
+        return new PayCancelResponse(PayCancelResult.PAY_CANCEL_SUCCESS,
+                payCancelRequest.getPayCancelAmount());
     }
 }
