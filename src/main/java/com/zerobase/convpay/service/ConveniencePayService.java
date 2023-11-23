@@ -8,7 +8,11 @@ public class ConveniencePayService { // 편의점 결제 서비스
     private final MoneyAdapter moneyAdapter = new MoneyAdapter();
     private final CardAdapter cardAdapter = new CardAdapter();
 
-    //결제
+    // 결제수단에 따라 할인
+  //  private final DiscountInterface discountInterface = new DiscountByMethod();
+
+    // 편의점에 따라 할인
+    private final DiscountInterface discountInterface = new DiscountByConvenience();
 
     public PayResponse pay(PayRequest payRequest) {
         PaymentInterface paymentInterface;
@@ -17,14 +21,15 @@ public class ConveniencePayService { // 편의점 결제 서비스
         }else {
             paymentInterface =moneyAdapter;
         }
-        PaymentResult payment = paymentInterface.payment(payRequest.getPayAmount());
+        Integer discountedAmount = discountInterface.getDiscountedAmount(payRequest);
+        PaymentResult payment = paymentInterface.payment(discountedAmount);
         // fail fast
         // 단 하나의 성공 케이스를 마지막에 처리 Only one
         if (payment == PaymentResult.PAYMENT_FAIL) {
             return new PayResponse(PayResult.FAIL, 0);
         }
         // SUCCESS CASE
-        return new PayResponse(PayResult.SUCCESS, payRequest.getPayAmount());
+        return new PayResponse(PayResult.SUCCESS, discountedAmount);
 
 
     }
